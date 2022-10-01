@@ -1,0 +1,36 @@
+---------- Serviços -------------
+RS = game:GetService("ReplicatedStorage")
+----- Eventos Telecineticos -----
+EventosTele = RS:WaitForChild("EventosTelecineticos")
+IniciaTele = EventosTele:WaitForChild("IniciaTele")
+UpdateTele = EventosTele:WaitForChild("UpdateTele")
+TerminaTele = EventosTele:WaitForChild("TerminaTele")
+------------ Modulo ------------
+Controle = require(script.Controle)
+
+IniciaTele.OnServerEvent:Connect(function(plr, alvo)
+	local Autorizado = Controle.AutorizarInicio(plr, alvo)
+	
+	local humAlvo = alvo.Humanoid
+	if Autorizado and humAlvo then
+		table.insert(Controle.SofremTele, alvo)
+		
+		local HRP = alvo.HumanoidRootPart
+		HRP.Anchored = true
+		
+		Controle.LimitarTempo(plr, alvo)
+		
+	end
+end)
+
+UpdateTele.OnServerEvent:Connect(function(plr, alvo, unitRay)
+	if table.find(Controle.SofremTele, alvo) ~= nil then
+		alvo:PivotTo (CFrame.lookAt(unitRay.Origin + unitRay.Direction * 10, unitRay.Direction))
+	end
+end)
+
+TerminaTele.OnServerEvent:Connect(function(plr, alvo)
+	Controle.ChegadeTele(plr, alvo)
+end)
+
+
