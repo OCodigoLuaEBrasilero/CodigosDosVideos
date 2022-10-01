@@ -1,0 +1,125 @@
+---------- Serviços -------------
+RS = game:GetService("ReplicatedStorage")
+UIS = game:GetService("UserInputService")
+RunService = game:GetService("RunService")
+CAS = game:GetService("ContextActionService")
+----- Eventos Telecineticos -----
+EventosTele = RS:WaitForChild("EventosTelecineticos")
+IniciaTele = EventosTele:WaitForChild("IniciaTele")
+UpdateTele = EventosTele:WaitForChild("UpdateTele")
+TerminaTele = EventosTele:WaitForChild("TerminaTele")
+---------- Variaveis Legais -----
+plr = game.Players.LocalPlayer
+char = plr.Character or plr.CharacterAdded:Wait()
+hum = char:WaitForChild("Humanoid")
+Frame = script.Parent
+botao = Frame:WaitForChild("Telecinese")
+cam = game.Workspace.Camera
+
+mouse = plr:GetMouse()
+
+
+------- Controle ------------
+local connect
+pegou = false
+ModeloPego = nil
+local connect2
+local connect3
+
+function ParaMobile()
+	connect = UIS.TouchTapInWorld:Connect(function(pos, escreve)
+		if not escreve and not pegou then
+			local unitRay = cam:ViewportPointToRay(pos.X, pos.Y)
+			local raio = Ray.new(unitRay.Origin, unitRay.Direction * 100)
+			local hitPart = game.Workspace:FindPartOnRay(raio, char)
+			
+			if hitPart then
+				pegou = true
+				ModeloPego = hitPart.Parent
+				IniciaTele:FireServer(ModeloPego)
+				
+				connect2 = RunService.RenderStepped:Connect(function()
+					if pegou then
+						local unitRay = cam:ViewportPointToRay(150,150)
+						UpdateTele:FireServer(ModeloPego, unitRay)
+					else
+						connect2:Disconnect()
+					end
+				end)
+				
+				CAS:BindAction("Descer", function()
+					TerminaTele:FireServer(ModeloPego)
+					pegou = false
+					ModeloPego = nil
+					connect:Disconnect()
+					connect2:Disconnect()
+					CAS:UnbindAction("Descer")
+				end, true)
+				
+				CAS:SetPosition("Descer", UDim2.fromScale(0.7,-0.3))
+				CAS:SetTitle("Descer", "Descer")
+			end
+		end
+	end)
+end
+
+function ParaPC ()
+	connect = mouse.Button1Down:Connect(function()
+		if not pegou then
+			local unitRay = cam:ViewportPointToRay(UIS:GetMouseLocation().X, UIS:GetMouseLocation().Y)
+			local raio = Ray.new(unitRay.Origin, unitRay.Direction * 100)
+			local hitPart = game.Workspace:FindPartOnRay(raio, char)	
+
+			if hitPart then
+				pegou = true
+				ModeloPego = hitPart.Parent
+				IniciaTele:FireServer(ModeloPego)
+				
+				connect2 = RunService.RenderStepped:Connect(function()
+					if pegou then
+						local unitRay = cam:ViewportPointToRay(UIS:GetMouseLocation().X, UIS:GetMouseLocation().Y)
+						UpdateTele:FireServer(ModeloPego, unitRay)
+					else
+						connect2:Disconnect()
+					end
+				end)
+				connect3 = mouse.Button1Up:Connect(function()
+					TerminaTele:FireServer(ModeloPego)
+					pegou = false
+					ModeloPego = nil
+					connect:Disconnect()
+					connect2:Disconnect()
+					connect3:Disconnect()
+				end)
+			end
+		end
+	end)
+end
+
+-------- Conexão inicial -------
+botao.MouseButton1Up:Connect(function()
+	if UIS.TouchEnabled and not UIS.KeyboardEnabled then
+		---Celular
+		ParaMobile()
+	else
+		ParaPC ()
+		---Computador
+	end
+end)
+
+UIS.InputBegan:Connect(function(input, escreve)
+	if not escreve and input.KeyCode == Enum.KeyCode.T then
+		ParaPC()
+	end
+end)
+
+TerminaTele.OnClientEvent:Connect(function()
+	pegou = false
+	ModeloPego = nil
+	connect:Disconnect()
+	connect2:Disconnect()
+	if connect3 ~= nil then
+		connect3:Disconnect()
+	end
+	CAS:UnbindAction("Descer")
+end)
