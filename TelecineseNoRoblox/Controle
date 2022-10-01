@@ -1,0 +1,59 @@
+---------- Serviços -------------
+RS = game:GetService("ReplicatedStorage")
+----- Eventos Telecineticos -----
+EventosTele = RS:WaitForChild("EventosTelecineticos")
+TerminaTele = EventosTele:WaitForChild("TerminaTele")
+
+local Controle = 
+	{
+		SofremTele = {},
+		PersoGuisAutorizados = {"Wanda", "Eleven"}
+	}
+
+function Controle. AutorizarInicio (plr, alvo)
+	local autorizado = false
+	local plrGUI = plr.PlayerGui
+	
+	for i, screengui in pairs(plrGUI:GetChildren()) do
+
+		if table.find(Controle.PersoGuisAutorizados, screengui.Name) ~= nil then
+			
+			if table.find(Controle.SofremTele, alvo) == nil then
+				autorizado = true
+				return autorizado
+			end
+		else
+			--- Alta de ser um exploit
+			-- plr:Kick()
+		end
+	end
+end
+
+function Controle. LimitarTempo (plr, alvo)
+	local n = 0
+	
+	repeat
+		task.wait(1)
+		n += 1
+		
+	until n == 8
+	
+	Controle.ChegadeTele(plr, alvo)
+end
+
+function Controle. ChegadeTele (plr, alvo)
+	local sofredor = table.find(Controle.SofremTele, alvo)
+	if sofredor ~= nil then
+		local HRP = alvo.HumanoidRootPart
+		HRP.Anchored = false
+		
+		local Hum = alvo.Humanoid
+		Hum.Health -= 30
+		
+		table.remove(Controle.SofremTele, sofredor)
+		
+		TerminaTele:FireClient(plr)
+	end
+end
+
+return Controle
